@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"encoding/json"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -12,8 +14,8 @@ func NewUUID() string {
 	return strings.Replace(u, "-", "", -1)
 }
 
-// MapToStruct 将 map 转换为结构体，根据 json tag 匹配字段
-func MapToStruct[T any](m map[string]interface{}, tt T) (T, error) {
+// mapToStruct 将 map 转换为结构体，根据 json tag 匹配字段
+func mapToStruct[T any](m map[string]interface{}, tt T) (T, error) {
 	var result T
 	v := reflect.ValueOf(&result).Elem()
 	t := v.Type()
@@ -48,8 +50,8 @@ func MapToStruct[T any](m map[string]interface{}, tt T) (T, error) {
 	return result, nil
 }
 
-// StructToMap 将结构体转换为 map，使用 json tag 作为键名
-func StructToMap(v interface{}) map[string]interface{} {
+// structToMap 将结构体转换为 map，使用 json tag 作为键名
+func structToMap(v interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	elem := reflect.ValueOf(v)
 	if elem.Kind() == reflect.Ptr {
@@ -79,4 +81,34 @@ func StructToMap(v interface{}) map[string]interface{} {
 	}
 
 	return result
+}
+
+func ToMap[T []byte | any](data T) (map[string]interface{}, error) {
+	switch v := any(data).(type) {
+	case struct{}:
+		return structToMap(v), nil
+	case []byte:
+		var m map[string]interface{}
+		err := json.Unmarshal(v, &m)
+		return m, err
+	default:
+		return nil, errors.New("not a map")
+	}
+}
+
+func ToStruct[T map[string]any | []byte, R any](data T, r R) (R, error) {
+	switch v := any(data).(type) {
+	case map[string]interface{}:
+		return mapToStruct(v, r)
+	case []byte:
+		err := json.Unmarshal(v, &r)
+		return r, err
+	default:
+		var r R
+		return r, errors.New("not a map")
+	}
+}
+
+func ToJson[T map[string]any | any](data T) ([]byte, error) {
+	return json.Marshal(data)
 }

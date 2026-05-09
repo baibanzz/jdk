@@ -16,9 +16,9 @@ func TestStructAndMap(t *testing.T) {
 		Name: "john",
 		Age:  18,
 	}
-	toMap := StructToMap(User1)
+	toMap := structToMap(User1)
 	t.Log(toMap)
-	toStruct, err := MapToStruct(toMap, User{})
+	toStruct, err := mapToStruct(toMap, User{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,4 +27,30 @@ func TestStructAndMap(t *testing.T) {
 		t.Error("值不相同")
 	}
 
+}
+
+func TestTo(t *testing.T) {
+	type User struct {
+		Name string
+		Age  int
+	}
+	User1 := User{
+		Name: "john",
+		Age:  18,
+	}
+	tomap := structToMap(User1)
+	t.Log(tomap)
+	json, _ := ToJson(User1)
+	t.Log(string(json))
+
+	toMap, err := mapToStruct(tomap, User{})
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(toMap)
+	toStruct, err := ToStruct(json, User{})
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(toStruct)
 }
