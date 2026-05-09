@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/tls"
-	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -15,7 +15,7 @@ func NewHttp() http.Client {
 	return http.Client{Transport: tr}
 }
 
-func Get(url string, header http.Header) ([]byte, *http.Response, error) {
+func GetBase(url string, header http.Header) ([]byte, *http.Response, error) {
 	h := NewHttp()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -36,31 +36,29 @@ func Get(url string, header http.Header) ([]byte, *http.Response, error) {
 	return body, resp, nil
 }
 
-//// Get 发送 GET 请求，返回 JSON 响应
-//func GetMap[T string | map[string]any | struct{}](url string, data T, header http.Header) (map[string]any, *http.Response, error) {
-//	var pushData string
-//
-//}
-
-// GetToStruct 发送 GET 请求，将响应映射到结构体
-func GetToStruct[T any](url string) (T, error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+// Get 发送 GET 请求，返回 JSON 响应
+func Get[T string | map[string]any | any](url string, data T, header http.Header) (map[string]any, *http.Response, error) {
+	switch v := any(data).(type) {
+	case string:
+		ret, response, err := GetBase(url+"?"+v, header)
+		if err != nil {
+			return nil, nil, err
+		}
+		toMap, err := ToMap(ret)
+		if err != nil {
+			return nil, nil, err
+		}
+		return toMap, response, nil
+	case map[string]any:
+		query := UrlEncodeMap(v)
+		return Get(url, query, header)
+	case any:
+		toMap, err := ToMap(data)
+		if err != nil {
+			return nil, nil, err
+		}
+		return Get(url, toMap, header)
+	default:
+		return nil, nil, fmt.Errorf("unknown type %T", v)
 	}
-	client := http.Client{Transport: tr}
-
-	var result T
-	resp, err := client.Get(url)
-	if err != nil {
-		return result, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return result, err
-	}
-
-	err = json.Unmarshal(body, &result)
-	return result, err
 }

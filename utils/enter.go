@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/url"
 	"reflect"
 	"strings"
 
@@ -85,12 +87,12 @@ func structToMap(v interface{}) map[string]interface{} {
 
 func ToMap[T []byte | any](data T) (map[string]interface{}, error) {
 	switch v := any(data).(type) {
-	case struct{}:
-		return structToMap(v), nil
 	case []byte:
 		var m map[string]interface{}
 		err := json.Unmarshal(v, &m)
 		return m, err
+	case any:
+		return structToMap(v), nil
 	default:
 		return nil, errors.New("not a map")
 	}
@@ -111,4 +113,24 @@ func ToStruct[T map[string]any | []byte, R any](data T, r R) (R, error) {
 
 func ToJson[T map[string]any | any](data T) ([]byte, error) {
 	return json.Marshal(data)
+}
+
+// UrlEncodeMap 将 map 转换为 URL 查询参数字符串
+func UrlEncodeMap(m map[string]any) string {
+	if len(m) == 0 {
+		return ""
+	}
+	var parts []string
+	for k, v := range m {
+		encodedKey := url.QueryEscape(k)
+		var encodedValue string
+		switch v := v.(type) {
+		case []string:
+			encodedValue = url.QueryEscape(strings.Join(v, ","))
+		default:
+			encodedValue = url.QueryEscape(fmt.Sprintf("%v", v))
+		}
+		parts = append(parts, encodedKey+"="+encodedValue)
+	}
+	return strings.Join(parts, "&")
 }
