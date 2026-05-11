@@ -7,14 +7,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
-
-	"github.com/google/uuid"
 )
-
-func NewUUID() string {
-	u := uuid.New().String()
-	return strings.Replace(u, "-", "", -1)
-}
 
 // mapToStruct 将 map 转换为结构体，根据 json tag 匹配字段
 func mapToStruct[T any](m map[string]interface{}, tt T) (T, error) {

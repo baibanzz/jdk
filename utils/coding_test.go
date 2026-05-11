@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/hex"
 	"testing"
 )
 
@@ -9,21 +8,21 @@ func TestMD5(t *testing.T) {
 	// 测试 string 输入
 	strResult := MD5("hello")
 	expected := "5d41402abc4b2a76b9719d911017c592"
-	if hex.EncodeToString(strResult) != expected {
-		t.Errorf("MD5(string) = %s, expected %s", hex.EncodeToString(strResult), expected)
+	if strResult != expected {
+		t.Errorf("MD5(string) = %s, expected %s", strResult, expected)
 	}
 
 	// 测试 []byte 输入
 	bytesResult := MD5([]byte("hello"))
-	if hex.EncodeToString(bytesResult) != expected {
-		t.Errorf("MD5([]byte) = %s, expected %s", hex.EncodeToString(bytesResult), expected)
+	if bytesResult != expected {
+		t.Errorf("MD5([]byte) = %s, expected %s", bytesResult, expected)
 	}
 
 	// 测试空字符串
 	emptyResult := MD5("")
 	emptyExpected := "d41d8cd98f00b204e9800998ecf8427e"
-	if hex.EncodeToString(emptyResult) != emptyExpected {
-		t.Errorf("MD5(empty) = %s, expected %s", hex.EncodeToString(emptyResult), emptyExpected)
+	if emptyResult != emptyExpected {
+		t.Errorf("MD5(empty) = %s, expected %s", emptyResult, emptyExpected)
 	}
 }
 
