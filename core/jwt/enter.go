@@ -23,6 +23,12 @@ type TokenClaims[T any] struct {
 	ExpiresAt int64 `json:"exp"`
 }
 
+func New[T any](t T) *TokenClaims[T] {
+	return &TokenClaims[T]{
+		Claims: t,
+	}
+}
+
 func (t *TokenClaims[T]) SignToken(secret string) (string, error) {
 	header := map[string]string{"alg": "HS256", "typ": "JWT"}
 	headerJSON, err := json.Marshal(header)

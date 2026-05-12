@@ -7,14 +7,10 @@ func TestJWT(t *testing.T) {
 		Name string
 		Age  int
 	}
-	d := demo{
+	ls := New(demo{
 		Name: "haha",
 		Age:  12,
-	}
-
-	ls := TokenClaims[demo]{
-		Claims: d,
-	}
+	})
 	token, err := ls.SignToken("12345678")
 	if err != nil {
 		t.Error(err)
