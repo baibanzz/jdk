@@ -2,8 +2,9 @@ package model
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 type Mysql struct {
@@ -23,8 +24,19 @@ func (m *Mysql) Dsn() string {
 	if strings.TrimSpace(other) == "" {
 		other = DefaultOther
 	}
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
-		m.Username, url.QueryEscape(m.Password), m.Host, m.Port, m.Database, other)
+	config := mysql.Config{
+		User:   m.Username,
+		Passwd: m.Password,
+		Net:    "tcp",
+		Addr:   fmt.Sprintf("%s:%s", m.Host, m.Port),
+		DBName: m.Database,
+		//Config:   "charset=utf8mb4&parseTime=True&loc=Asia/Shanghai",
+		Collation: DefaultOther,
+	}
+	return config.FormatDSN()
+
+	//return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
+	//	m.Username, url.QueryEscape(m.Password), m.Host, m.Port, m.Database, other)
 }
 
 type Sqlite3 struct {
