@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ func (m *Mysql) Dsn() string {
 		other = DefaultOther
 	}
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
-		m.Username, m.Password, m.Host, m.Port, m.Database, other)
+		m.Username, url.QueryEscape(m.Password), m.Host, m.Port, m.Database, other)
 }
 
 type Sqlite3 struct {
