@@ -5,6 +5,11 @@ import (
 	"github.com/baibanzz/jdk/model"
 )
 
-func NewEtcd(d model.Etcd) (*etcd.Etcd, error) {
-	return etcd.New(d)
+type Etcd struct {
+	*etcd.Etcd
+}
+
+func NewEtcd(d model.Etcd) (*Etcd, error) {
+	e, err := etcd.New(d)
+	return &Etcd{e}, err
 }
