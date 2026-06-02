@@ -16,7 +16,9 @@ import (
 
 type Logger struct {
 	*zap.Logger
-	level zapcore.Level
+	level     zapcore.Level
+	FirstName string
+	option    Option
 }
 
 type Option struct {
@@ -34,6 +36,7 @@ var DefaultOption = Option{
 	WriteFile:      true,
 	MoreFiles:      true,
 	ShowConsoleLog: true,
+	FirstName:      "main",
 }
 
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
@@ -94,7 +97,7 @@ func NewLog(cfgs ...Option) *Logger {
 				zapcore.FatalLevel:  fmt.Sprintf("%s-%s.log", cfg.FirstName, "error"),
 			}
 			for lv, filename := range levelFiles {
-				writer, err := getLogWriter(cfg.FilePath+time.Now().Format(time.DateOnly), filename)
+				writer, err := getLogWriter(cfg.FilePath+"/"+time.Now().Format(time.DateOnly), filename)
 				if err != nil {
 					continue
 				}
@@ -108,7 +111,7 @@ func NewLog(cfgs ...Option) *Logger {
 			}
 		} else {
 			// 全部写入同一个文件
-			writer, err := getLogWriter(cfg.FilePath+time.Now().Format(time.DateOnly), fmt.Sprintf("%s.log", cfg.FirstName))
+			writer, err := getLogWriter(cfg.FilePath+"/"+time.Now().Format(time.DateOnly), fmt.Sprintf("%s.log", cfg.FirstName))
 			if err == nil {
 				cores = append(cores, zapcore.NewCore(
 					zapcore.NewJSONEncoder(encoderConfig),
@@ -121,7 +124,7 @@ func NewLog(cfgs ...Option) *Logger {
 
 	core := zapcore.NewTee(cores...)
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-	return &Logger{Logger: logger, level: level}
+	return &Logger{Logger: logger, level: level, FirstName: cfg.FirstName, option: cfg}
 }
 
 func getLogWriter(filePath, filename string) (zapcore.WriteSyncer, error) {
@@ -139,42 +142,45 @@ func getLogWriter(filePath, filename string) (zapcore.WriteSyncer, error) {
 	return zapcore.AddSync(file), nil
 }
 
-func (l *Logger) Log(level zapcore.Level, format string, data map[string]interface{}) {
+func (l *Logger) Log(level zapcore.Level, format string, data []map[string]interface{}) {
 	var ls []zap.Field
-	for k, v := range data {
-		switch d := v.(type) {
-		case string:
-			ls = append(ls, zap.String(k, d))
-		case error:
-			ls = append(ls, zap.Error(d))
-		default:
-			ls = append(ls, zap.Any(k, v))
+	for _, vv := range data {
+		for k, v := range vv {
+			switch d := v.(type) {
+			case string:
+				ls = append(ls, zap.String(k, d))
+			case error:
+				ls = append(ls, zap.Error(d))
+			default:
+				ls = append(ls, zap.Any(k, v))
+			}
 		}
 	}
+
 	l.Logger.Log(level, format, ls...)
 }
 
-func (l *Logger) Info(msg string, data map[string]interface{}) {
+func (l *Logger) Info(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.InfoLevel, msg, data)
 }
 
-func (l *Logger) Warn(msg string, data map[string]interface{}) {
+func (l *Logger) Warn(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.WarnLevel, msg, data)
 }
 
-func (l *Logger) Error(msg string, data map[string]interface{}) {
+func (l *Logger) Error(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.ErrorLevel, msg, data)
 }
 
-func (l *Logger) Debug(msg string, data map[string]interface{}) {
+func (l *Logger) Debug(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.DebugLevel, msg, data)
 }
 
-func (l *Logger) Fatal(msg string, data map[string]interface{}) {
+func (l *Logger) Fatal(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.FatalLevel, msg, data)
 }
 
-func (l *Logger) Panic(msg string, data map[string]interface{}) {
+func (l *Logger) Panic(msg string, data ...map[string]interface{}) {
 	l.Log(zapcore.PanicLevel, msg, data)
 }
 
@@ -251,10 +257,30 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (stri
 	}
 }
 
-// Clone 克隆 Logger
-func (l *Logger) Clone() *Logger {
-	return &Logger{
-		Logger: l.Logger.WithOptions(),
-		level:  l.level,
+// Clone 克隆 Logger，支持传入新的 FirstName 来重建文件写入器
+func (l *Logger) Clone(firstName ...string) *Logger {
+	fn := l.FirstName
+	if len(firstName) > 0 {
+		fn = firstName[0]
 	}
+
+	// 如果 FirstName 没变，直接浅克隆
+	if fn == l.FirstName {
+		return &Logger{
+			Logger:    l.Logger.WithOptions(),
+			level:     l.level,
+			FirstName: fn,
+			option:    l.option,
+		}
+	}
+
+	// FirstName 变了，需要重建文件写入器
+	newOpt := l.option
+	newOpt.FirstName = fn
+	return NewLog(newOpt)
+}
+
+// WithFirstName 返回带新 FirstName 的新 Logger 实例（会重建文件写入器）
+func (l *Logger) WithFirstName(name string) *Logger {
+	return l.Clone(name)
 }
