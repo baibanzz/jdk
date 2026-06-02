@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"errors"
 )
 
 // AesEncryptSimple 加密
@@ -120,4 +121,37 @@ func PKCS7UnPadding(origData []byte) []byte {
 
 	return origData[:(length - unpadding)]
 
+}
+func EncryptAES(data, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	data = PKCS7Padding(data, block.BlockSize())
+	decrypted := make([]byte, len(data))
+	size := block.BlockSize()
+
+	for bs, be := 0, size; bs < len(data); bs, be = bs+size, be+size {
+		block.Encrypt(decrypted[bs:be], data[bs:be])
+	}
+
+	return decrypted, nil
+}
+
+func DecryptAES(data, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	decrypted := make([]byte, len(data))
+	size := block.BlockSize()
+
+	for bs, be := 0, size; bs < len(data); bs, be = bs+size, be+size {
+		if len(decrypted) < be || len(data) < be {
+			return nil, errors.New("data error")
+		}
+		block.Decrypt(decrypted[bs:be], data[bs:be])
+	}
+
+	return PKCS7UnPadding(decrypted), nil
 }
