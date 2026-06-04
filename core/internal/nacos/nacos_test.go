@@ -163,17 +163,19 @@ func TestNacos_ListenConfig(t *testing.T) {
 		t.Fatalf("创建 Nacos 客户端失败: %v", err)
 	}
 	defer nc.Close()
-
-	changed := make(chan string, 1)
+	nc.PushConfig(testDataId, testGroup, map[string]interface{}{
+		"testKey": "testValue",
+	})
+	changed := make(chan string)
 
 	err = nc.ListenConfig(testDataId, testGroup, func(data string) {
-		log.Printf("配置变更: %s", data)
 		changed <- data
 	})
 	if err != nil {
 		t.Fatalf("监听配置失败: %v", err)
 	}
 	t.Log("监听配置成功，请手动在 Nacos 控制台修改配置以触发变更")
+	log.Printf("配置变更: %s", <-changed)
 }
 
 func TestNacos_RegisterAndDeregisterService(t *testing.T) {
