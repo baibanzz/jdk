@@ -13,8 +13,8 @@ var (
 	nacosHost     = envOrDefault("NACOS_HOST", "127.0.0.1")
 	nacosPort     = uint64(8848)
 	nacosGrpcPort = uint64(9848)
-	nacosUsername = envOrDefault("NACOS_USERNAME", "nacos")
-	nacosPassword = envOrDefault("NACOS_PASSWORD", "nacos")
+	nacosUsername = envOrDefault("NACOS_USERNAME", "demo")
+	nacosPassword = envOrDefault("NACOS_PASSWORD", "demo")
 	nacosSpace    = envOrDefault("NACOS_NAMESPACE", "cex-qufc")
 	testDataId    = envOrDefault("NACOS_TEST_DATA_ID", "demo.yaml")
 	testGroup     = envOrDefault("NACOS_TEST_GROUP", "DEFAULT_GROUP")
@@ -325,4 +325,55 @@ func TestNacos_Close(t *testing.T) {
 		t.Fatal("关闭后获取配置应返回错误")
 	}
 	t.Logf("关闭后操作返回预期错误: %v", err)
+}
+
+func TestNacos_ListGroup(t *testing.T) {
+	nc, err := New(
+		[]string{nacosHost},
+		nacosPort,
+		nacosGrpcPort,
+		nacosSpace,
+		"./tmp/nacos/log",
+		"./tmp/nacos/cache",
+		nacosUsername,
+		nacosPassword,
+	)
+	if err != nil {
+		t.Fatalf("创建 Nacos 客户端失败: %v", err)
+	}
+	defer nc.Close()
+
+	data, err := nc.ListGroup(testGroup)
+	if err != nil {
+		t.Fatalf("ListGroup 失败: %v", err)
+	}
+	t.Logf("ListGroup 成功, 内容长度: %d", len(data))
+	if len(data) > 0 {
+		t.Logf("内容: %s", string(data))
+	}
+}
+func TestNacos_ListsTags(t *testing.T) {
+	nc, err := New(
+		[]string{nacosHost},
+		nacosPort,
+		nacosGrpcPort,
+		nacosSpace,
+		"./tmp/nacos/log",
+		"./tmp/nacos/cache",
+		nacosUsername,
+		nacosPassword,
+	)
+	if err != nil {
+		t.Fatalf("创建 Nacos 客户端失败: %v", err)
+	}
+	defer nc.Close()
+
+	data, err := nc.ListTags("")
+	if err != nil {
+		t.Fatalf("ListTags 失败: %v", err)
+	}
+	t.Logf("ListTags 成功, 内容长度: %d", len(data))
+	if len(data) > 0 {
+		t.Logf("内容: \n%s", string(data))
+	}
 }

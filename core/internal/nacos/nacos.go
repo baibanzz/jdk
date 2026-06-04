@@ -1,6 +1,7 @@
 package nacos
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -181,6 +182,151 @@ func (n *Nacos) DeleteConfig(dataId, group string) (bool, error) {
 		DataId: dataId,
 		Group:  group,
 	})
+}
+
+// SearchConfig 搜索配置
+// search 模式: "accurate" 精确搜索, "blur" 模糊搜索
+func (n *Nacos) SearchConfig(group, dataId string, search string, pageNo, pageSize int) (*model.ConfigPage, error) {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
+	if n.closed {
+		return nil, fmt.Errorf("Nacos 客户端已关闭")
+	}
+
+	return n.configClient.SearchConfig(vo.SearchConfigParam{
+		Search:   search,
+		DataId:   dataId,
+		Group:    group,
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	})
+}
+
+// ListGroup 获取指定分组下的全部配置（自动处理分页），将所有配置内容合并返回
+func (n *Nacos) ListGroup(group string) ([]byte, error) {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
+	if n.closed {
+		return nil, fmt.Errorf("Nacos 客户端已关闭")
+	}
+
+	// 先查询第一页，获取总数
+	page, err := n.configClient.SearchConfig(vo.SearchConfigParam{
+		Search:   "accurate",
+		Group:    group,
+		PageNo:   1,
+		PageSize: 10,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("搜索 Nacos 配置失败(group=%s): %w", group, err)
+	}
+
+	total := page.TotalCount
+	if total == 0 {
+		return []byte{}, nil
+	}
+
+	// 如果第一页没拉完，调整 pageSize 一次性拉取全部
+	if total > len(page.PageItems) {
+		page, err = n.configClient.SearchConfig(vo.SearchConfigParam{
+			Search:   "accurate",
+			Group:    group,
+			PageNo:   1,
+			PageSize: total,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("搜索 Nacos 配置失败(group=%s): %w", group, err)
+		}
+	}
+
+	// 合并所有配置内容
+	var buf bytes.Buffer
+	for i, item := range page.PageItems {
+		if i > 0 {
+			buf.WriteString("\n")
+		}
+		config, err := n.configClient.GetConfig(vo.ConfigParam{
+			DataId: item.DataId,
+			Group:  group,
+		})
+		if err != nil {
+			continue
+		}
+		buf.WriteString(config)
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (n *Nacos) ListTag(tag string) ([]byte, error) {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
+	if n.closed {
+		return nil, fmt.Errorf("Nacos 客户端已关闭")
+	}
+
+	// 先查询第一页，获取总数
+	page, err := n.configClient.SearchConfig(vo.SearchConfigParam{
+		Search:   "accurate",
+		Tag:      tag,
+		PageNo:   1,
+		PageSize: 10,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("搜索 Nacos 配置失败(tag=%s): %w", tag, err)
+	}
+
+	total := page.TotalCount
+	if total == 0 {
+		return []byte{}, nil
+	}
+
+	// 如果第一页没拉完，调整 pageSize 一次性拉取全部
+	if total > len(page.PageItems) {
+		page, err = n.configClient.SearchConfig(vo.SearchConfigParam{
+			Search:   "accurate",
+			Tag:      tag,
+			PageNo:   1,
+			PageSize: total,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("搜索 Nacos 配置失败(tag=%s): %w", tag, err)
+		}
+	}
+
+	// 合并所有配置内容
+	var buf bytes.Buffer
+	for i, item := range page.PageItems {
+		if i > 0 {
+			buf.WriteString("\n")
+		}
+		config, err := n.configClient.GetConfig(vo.ConfigParam{
+			DataId: item.DataId,
+			Tag:    tag,
+		})
+		if err != nil {
+			continue
+		}
+		buf.WriteString(config)
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (n *Nacos) ListTags(tags ...string) ([]byte, error) {
+	var ret = bytes.NewBuffer(nil)
+	for _, tag := range tags {
+		data, err := n.ListTag(tag)
+		if err != nil {
+			continue
+		}
+		ret.Write(data)
+		ret.WriteString("\n")
+	}
+	return ret.Bytes(), nil
 }
 
 // RegisterService 注册服务实例
