@@ -260,71 +260,17 @@ func (n *Nacos) ListGroup(group string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (n *Nacos) ListTag(tag string) ([]byte, error) {
+func (n *Nacos) GetNames(names ...string) ([]byte, error) {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
-
-	if n.closed {
-		return nil, fmt.Errorf("Nacos 客户端已关闭")
-	}
-
-	// 先查询第一页，获取总数
-	page, err := n.configClient.SearchConfig(vo.SearchConfigParam{
-		Search:   "accurate",
-		Tag:      tag,
-		PageNo:   1,
-		PageSize: 10,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("搜索 Nacos 配置失败(tag=%s): %w", tag, err)
-	}
-
-	total := page.TotalCount
-	if total == 0 {
-		return []byte{}, nil
-	}
-
-	// 如果第一页没拉完，调整 pageSize 一次性拉取全部
-	if total > len(page.PageItems) {
-		page, err = n.configClient.SearchConfig(vo.SearchConfigParam{
-			Search:   "accurate",
-			Tag:      tag,
-			PageNo:   1,
-			PageSize: total,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("搜索 Nacos 配置失败(tag=%s): %w", tag, err)
-		}
-	}
-
-	// 合并所有配置内容
-	var buf bytes.Buffer
-	for i, item := range page.PageItems {
-		if i > 0 {
-			buf.WriteString("\n")
-		}
-		config, err := n.configClient.GetConfig(vo.ConfigParam{
-			DataId: item.DataId,
-			Tag:    tag,
-		})
-		if err != nil {
-			continue
-		}
-		buf.WriteString(config)
-	}
-
-	return buf.Bytes(), nil
-}
-
-func (n *Nacos) ListTags(tags ...string) ([]byte, error) {
 	var ret = bytes.NewBuffer(nil)
-	for _, tag := range tags {
-		data, err := n.ListTag(tag)
+	for _, name := range names {
+		b, err := n.GetConfig(name, "DEFAULT_GROUP")
 		if err != nil {
-			continue
+			return nil, err
 		}
-		ret.Write(data)
-		ret.WriteString("\n")
+		ret.Write(b)
+		ret.WriteByte('\n')
 	}
 	return ret.Bytes(), nil
 }

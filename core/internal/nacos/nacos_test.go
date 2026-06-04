@@ -352,7 +352,7 @@ func TestNacos_ListGroup(t *testing.T) {
 		t.Logf("内容: %s", string(data))
 	}
 }
-func TestNacos_ListsTags(t *testing.T) {
+func TestNacos_GetNames(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
