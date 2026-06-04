@@ -14,6 +14,7 @@ type Nacos = nacos.Nacos
 //	  host:
 //	    - 192.168.1.100
 //	  port: 8848
+//	  grpcPort: 9848
 //	  username: nacos
 //	  password: nacos
 //	  namespace: public
@@ -29,6 +30,10 @@ type NacosConfig struct {
 	// Nacos 服务端口，默认 8848
 	// yaml: port: 8848
 	Port uint64 `json:"port" yaml:"port"`
+
+	// Nacos gRPC 端口，默认 port + 1000（即 9848）
+	// yaml: grpcPort: 9848
+	GrpcPort uint64 `json:"grpcPort" yaml:"grpcPort"`
 
 	// Nacos 登录用户名
 	// yaml: username: nacos
@@ -58,5 +63,5 @@ func NewNacos(config NacosConfig) (*Nacos, error) {
 	if config.LogDir == "" {
 		config.LogDir = "./tmp/nacos/log"
 	}
-	return nacos.New(config.Host, config.Port, config.NameSpace, config.LogDir, config.CacheDir, config.Username, config.Password)
+	return nacos.New(config.Host, config.Port, config.GrpcPort, config.NameSpace, config.LogDir, config.CacheDir, config.Username, config.Password)
 }

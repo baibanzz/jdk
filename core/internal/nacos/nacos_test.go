@@ -12,6 +12,7 @@ import (
 var (
 	nacosHost     = envOrDefault("NACOS_HOST", "127.0.0.1")
 	nacosPort     = uint64(8848)
+	nacosGrpcPort = uint64(9848)
 	nacosUsername = envOrDefault("NACOS_USERNAME", "nacos")
 	nacosPassword = envOrDefault("NACOS_PASSWORD", "nacos")
 	nacosSpace    = envOrDefault("NACOS_NAMESPACE", "cex-qufc")
@@ -30,6 +31,7 @@ func TestNewNacos(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -47,6 +49,7 @@ func TestNacos_GetConfig(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -72,6 +75,7 @@ func TestNacos_GetConfigToStruct(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -95,6 +99,7 @@ func TestNacos_PublishAndDeleteConfig(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -147,6 +152,7 @@ func TestNacos_ListenConfig(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -174,6 +180,7 @@ func TestNacos_RegisterAndDeregisterService(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -187,7 +194,7 @@ func TestNacos_RegisterAndDeregisterService(t *testing.T) {
 
 	serviceName := "test-go-service"
 	ip := "127.0.0.1"
-	port := 8080
+	port := 9848
 
 	// 注册服务
 	ok, err := nc.RegisterService(serviceName, ip, port)
@@ -224,6 +231,7 @@ func TestNacos_SelectOneHealthyInstance(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -255,6 +263,7 @@ func TestNacos_Subscribe(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",
@@ -294,6 +303,7 @@ func TestNacos_Close(t *testing.T) {
 	nc, err := New(
 		[]string{nacosHost},
 		nacosPort,
+		nacosGrpcPort,
 		nacosSpace,
 		"./tmp/nacos/log",
 		"./tmp/nacos/cache",

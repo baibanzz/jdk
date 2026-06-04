@@ -22,14 +22,18 @@ type Nacos struct {
 	closed       bool
 }
 
-func New(host []string, port uint64, namespace, logDir, cacheDir, username, password string) (*Nacos, error) {
+func New(host []string, port uint64, grpcPort uint64, namespace, logDir, cacheDir, username, password string) (*Nacos, error) {
 	// 构建服务端配置
 	serverConfigs := make([]constant.ServerConfig, 0, len(host))
 	for _, ip := range host {
-		serverConfigs = append(serverConfigs, constant.ServerConfig{
+		sc := constant.ServerConfig{
 			IpAddr: ip,
 			Port:   port,
-		})
+		}
+		if grpcPort > 0 {
+			sc.GrpcPort = grpcPort
+		}
+		serverConfigs = append(serverConfigs, sc)
 	}
 
 	// 构建客户端配置
@@ -195,6 +199,7 @@ func (n *Nacos) RegisterService(serviceName, ip string, port int, opts ...Regist
 		Weight:      1,
 		Enable:      true,
 		Healthy:     true,
+		GroupName:   "DEFAULT_GROUP",
 	}
 
 	for _, opt := range opts {
@@ -217,6 +222,7 @@ func (n *Nacos) DeregisterService(serviceName, ip string, port int) (bool, error
 		ServiceName: serviceName,
 		Ip:          ip,
 		Port:        uint64(port),
+		GroupName:   "DEFAULT_GROUP",
 	})
 }
 
@@ -292,6 +298,7 @@ func (n *Nacos) Subscribe(serviceName string, callback func(services []model.Ins
 
 	param := &vo.SubscribeParam{
 		ServiceName:       serviceName,
+		GroupName:         "DEFAULT_GROUP",
 		SubscribeCallback: callback,
 	}
 
@@ -313,6 +320,7 @@ func (n *Nacos) Unsubscribe(serviceName string, callback func(services []model.I
 
 	param := &vo.SubscribeParam{
 		ServiceName:       serviceName,
+		GroupName:         "DEFAULT_GROUP",
 		SubscribeCallback: callback,
 	}
 
