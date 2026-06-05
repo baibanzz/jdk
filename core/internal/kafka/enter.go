@@ -185,20 +185,20 @@ func (k *Kafka) Consumer(ctx context.Context, topic, group string, handler func(
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		default:
 		}
 
 		msg, err := r.FetchMessage(ctx)
 		if err != nil {
-			return fmt.Errorf("获取消息失败: %w", err)
+			return nil
 		}
 
 		if err := handler(msg); err != nil {
 			return fmt.Errorf("处理消息失败: %w", err)
 		}
 
-		if err := r.CommitMessages(ctx, msg); err != nil {
+		if err := r.CommitMessages(context.Background(), msg); err != nil {
 			return fmt.Errorf("提交偏移量失败: %w", err)
 		}
 	}
@@ -231,13 +231,13 @@ func (k *Kafka) ConsumerManual(ctx context.Context, topic, group string, handler
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		default:
 		}
 
 		msg, err := r.FetchMessage(ctx)
 		if err != nil {
-			return fmt.Errorf("获取消息失败: %w", err)
+			return nil
 		}
 
 		// 即使 handler 失败也不终止，继续消费
@@ -245,7 +245,7 @@ func (k *Kafka) ConsumerManual(ctx context.Context, topic, group string, handler
 			continue
 		}
 
-		if err := r.CommitMessages(ctx, msg); err != nil {
+		if err := r.CommitMessages(context.Background(), msg); err != nil {
 			return fmt.Errorf("提交偏移量失败: %w", err)
 		}
 	}
