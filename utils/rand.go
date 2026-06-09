@@ -47,7 +47,9 @@ func RandString(length int, chars ...string) string {
 
 	charset := CHARSET_LOWER
 	if len(chars) > 0 && len(chars[0]) > 0 {
-		charset = chars[0]
+		for _, c := range chars {
+			charset += c
+		}
 	}
 
 	bytes := make([]byte, length)
