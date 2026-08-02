@@ -23,8 +23,27 @@ func (m *Mysql) Dsn() string {
 	if strings.TrimSpace(other) == "" {
 		other = DefaultOther
 	}
+	// other 是 "key=value&key=value" 格式：需保留 & / = 结构（否则 parseTime=True 失效，
+	// 时间列以 []uint8 返回、gorm 扫描 time.Time 失败），但每个值须经 url.QueryEscape
+	// 转义（否则含 / 等字符时 go-sql-driver 报 invalid DSN）。
+	query := encodeParams(other)
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s",
-		m.Username, url.QueryEscape(m.Password), m.Host, m.Port, m.Database, url.QueryEscape(other))
+		m.Username, url.QueryEscape(m.Password), m.Host, m.Port, m.Database, query)
+}
+
+// encodeParams 解析 "k1=v1&k2=v2" 并仅转义值，保留 key=value 分隔结构
+func encodeParams(raw string) string {
+	parts := strings.Split(raw, "&")
+	encoded := make([]string, 0, len(parts))
+	for _, p := range parts {
+		kv := strings.SplitN(p, "=", 2)
+		if len(kv) == 2 {
+			encoded = append(encoded, kv[0]+"="+url.QueryEscape(kv[1]))
+		} else if kv[0] != "" {
+			encoded = append(encoded, kv[0])
+		}
+	}
+	return strings.Join(encoded, "&")
 }
 
 type Sqlite3 struct {
