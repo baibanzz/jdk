@@ -4,3 +4,4 @@ core/internal/nacos/tmp/
 # 配置文件（含敏感信息）
 core/config.yaml
 core/config_test.go
+.idea
