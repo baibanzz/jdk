@@ -135,7 +135,7 @@ func getLogWriter(filePath, filename string) (zapcore.WriteSyncer, error) {
 	return zapcore.AddSync(file), nil
 }
 
-func (l *Logger) Log(level zapcore.Level, format string, data []map[string]interface{}) {
+func (l *Logger) Log(level zapcore.Level, format string, data []map[string]any) {
 	var ls []zap.Field
 	for _, vv := range data {
 		for k, v := range vv {
@@ -153,28 +153,50 @@ func (l *Logger) Log(level zapcore.Level, format string, data []map[string]inter
 	l.Logger.Log(level, format, ls...)
 }
 
-func (l *Logger) Info(msg string, data ...map[string]interface{}) {
+func (l *Logger) Info(msg string, data ...map[string]any) {
 	l.Log(zapcore.InfoLevel, msg, data)
 }
 
-func (l *Logger) Warn(msg string, data ...map[string]interface{}) {
+func (l *Logger) Warn(msg string, data ...map[string]any) {
 	l.Log(zapcore.WarnLevel, msg, data)
 }
 
-func (l *Logger) Error(msg string, data ...map[string]interface{}) {
+func (l *Logger) Error(msg string, data ...map[string]any) {
 	l.Log(zapcore.ErrorLevel, msg, data)
 }
 
-func (l *Logger) Debug(msg string, data ...map[string]interface{}) {
+func (l *Logger) Debug(msg string, data ...map[string]any) {
 	l.Log(zapcore.DebugLevel, msg, data)
 }
 
-func (l *Logger) Fatal(msg string, data ...map[string]interface{}) {
+func (l *Logger) Fatal(msg string, data ...map[string]any) {
 	l.Log(zapcore.FatalLevel, msg, data)
 }
 
-func (l *Logger) Panic(msg string, data ...map[string]interface{}) {
+func (l *Logger) Panic(msg string, data ...map[string]any) {
 	l.Log(zapcore.PanicLevel, msg, data)
+}
+
+func (l *Logger) Println(Level zapcore.Level, format string) {
+	l.Logger.Log(Level, format)
+}
+func (l *Logger) Printf(Level zapcore.Level, format string, data ...any) {
+	l.Logger.Log(Level, fmt.Sprintf(format, data...))
+}
+func (l *Logger) Fatalf(format string, data ...any) {
+	l.Logger.Fatal(fmt.Sprintf(format, data...))
+}
+func (l *Logger) Debugf(format string, data ...any) {
+	l.Logger.Debug(fmt.Sprintf(format, data...))
+}
+func (l *Logger) Infof(format string, data ...any) {
+	l.Logger.Info(fmt.Sprintf(format, data...))
+}
+func (l *Logger) Warnf(format string, data ...any) {
+	l.Logger.Warn(fmt.Sprintf(format, data...))
+}
+func (l *Logger) Errorf(format string, data ...any) {
+	l.Logger.Error(fmt.Sprintf(format, data...))
 }
 
 type GormLogger struct {
