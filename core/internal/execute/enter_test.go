@@ -36,7 +36,7 @@ func TestExecuteSQL_DirSource(t *testing.T) {
 
 func TestExecuteSQL_EmbedSource(t *testing.T) {
 	// embed 方式: //go:embed sql/* 后直接投入 embed.FS
-	fs := &FileDirMigrationSource{sqlfss: []embed.FS{sqlFS}}
+	fs := &fileDirMigrationSource{sqlfss: []embed.FS{sqlFS}}
 
 	migrations, err := fs.FindMigrations()
 	if err != nil {
