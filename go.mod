@@ -10,6 +10,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/redis/go-redis/v9 v9.19.0
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/rubenv/sql-migrate v1.8.1
 	github.com/segmentio/kafka-go v0.4.51
 	github.com/spf13/viper v1.21.0
 	go.etcd.io/etcd/client/v3 v3.6.11
@@ -52,6 +53,7 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
