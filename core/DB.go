@@ -85,6 +85,10 @@ func (a *AutoDB) Auto(f func(t, table string, err error)) error {
 	return nil
 }
 
+func (a *AutoDB) Push(t Models) {
+	a.models = append(a.models, t)
+}
+
 type Models interface {
 	TableName() string
 	DefData(db *gorm.DB) error
