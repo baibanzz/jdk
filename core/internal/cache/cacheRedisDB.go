@@ -27,8 +27,8 @@ type CacheRedisDBOpt[T any] struct {
 	TTL  time.Duration                             //默认时间
 }
 
-// NewRedisCache 创建redis缓存
-func NewRedisCache[T any](opt CacheRedisDBOpt[T]) *CacheRedisDB[T] {
+// NewCacheRedisDB 创建redis缓存
+func NewCacheRedisDB[T any](opt CacheRedisDBOpt[T]) *CacheRedisDB[T] {
 	return &CacheRedisDB[T]{
 		rs:   opt.Rs,
 		key:  opt.Key,

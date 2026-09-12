@@ -8,10 +8,10 @@ import (
 )
 
 type (
-	Cache             = cache.Cache
-	CachePro[T any]   = cache.CachePro[T]
-	CacheRedis[T any] = cache.CacheRedis[T]
-	CacheRedisDB[T any] = cache.CacheRedisDB[T]
+	Cache                  = cache.Cache
+	CachePro[T any]        = cache.CachePro[T]
+	CacheRedis[T any]      = cache.CacheRedis[T]
+	CacheRedisDB[T any]    = cache.CacheRedisDB[T]
 	CacheRedisDBOpt[T any] = cache.CacheRedisDBOpt[T]
 )
 
@@ -30,7 +30,7 @@ func NewCacheRedis[T any](client *redis.Client, defaultTimes, clearTime time.Dur
 	return cache.NewCacheRedis[T](client, defaultTimes, clearTime)
 }
 
-// NewRedisCache 创建一个带数据库兜底的Redis缓存实例
-func NewRedisCache[T any](opt CacheRedisDBOpt[T]) *CacheRedisDB[T] {
-	return cache.NewRedisCache[T](opt)
+// NewCacheRedisDB 创建一个带数据库兜底的Redis缓存实例
+func NewCacheRedisDB[T any](opt CacheRedisDBOpt[T]) *CacheRedisDB[T] {
+	return cache.NewCacheRedisDB[T](opt)
 }
