@@ -49,3 +49,43 @@ type Execute[T string | embed.FS] = execute.Execute[T]
 func NewExecute[T string | embed.FS](types TypeExecute, db *gorm.DB, source T) (*Execute[T], error) {
 	return execute.NewExecute(types, db, source)
 }
+
+type AutoDB struct {
+	models []Models
+	db     *gorm.DB
+}
+
+func NewAutoDB(db *gorm.DB) *AutoDB {
+	return &AutoDB{db: db}
+}
+
+func (a *AutoDB) Auto(f func(t, table string, err error)) error {
+	for _, v := range a.models {
+		if err := a.db.AutoMigrate(v); f != nil {
+			f("create", v.TableName(), err)
+			if err != nil {
+				return err
+			}
+		} else {
+			if err != nil {
+				return err
+			}
+		}
+		if err := v.DefData(a.db); f != nil {
+			f("defData", v.TableName(), err)
+			if err != nil {
+				return err
+			}
+		} else {
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+type Models interface {
+	TableName() string
+	DefData(db *gorm.DB) error
+}
