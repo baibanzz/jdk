@@ -37,13 +37,13 @@ func (m *MFA) getSaveKeyBySecret() string {
 func (m *MFA) Auto() *MFA {
 	if m.User != "" {
 		if m.Secret == "" && m.SaveKey != "" {
-			m.Secret = m.getSaveKeyBySecret()
+			m.Secret = m.getSecretBySaveKey()
 			if m.Secret == "" {
 				return nil
 			}
 		}
 		if m.Secret != "" && m.SaveKey == "" {
-			m.SaveKey = m.getSecretBySaveKey()
+			m.SaveKey = m.getSaveKeyBySecret()
 			if m.SaveKey == "" {
 				return nil
 			}
